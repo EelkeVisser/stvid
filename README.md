@@ -128,6 +128,11 @@ $HOME/ASIStudio_V1.8.run                                       # Execute install
 ```
 The ASIStudio installer will ask where to install the applications and to accept their license. Once installed, run the `ASICap` application with your ZWO ASI camera attached. The application will ask to you to provide the `sudo` credentials to install the `udev` rules setting the necessary user permissions. Once those are set, you should be able to operate your camera from within `ASICap`.
 
+### Raspberry Pi Camera
+If using a Raspberry Pi camera [picamerax](https://github.com/labthings/picamerax) is used. It can be installed by running:
+`sudo pip install "picamerax[array]"`
+
+
 ### STVID installation
 
 With the dependencies installed, we can install STVID using the following commands.
