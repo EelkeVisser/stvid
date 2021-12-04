@@ -497,7 +497,6 @@ See [https://github.com/cbassa/sattools](https://github.com/cbassa/sattools) for
 
 `sudo apt install git make dos2unix sextractor wcslib-dev libgsl-dev gfortran libpng-dev libx11-dev libjpeg-dev libexif-dev`
 
-
 ## Configuration
 * Edit `configuration.ini` with your preferred settings. Especially [Common], [Credentials] and [Camera]: camera_type = PI. You may also want to experiment with the analog_gain and digital_gain settings.
 * Make sure ST_DATADIR is set as an env variable pointing to the /data folder of sattools
