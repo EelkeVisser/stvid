@@ -17,6 +17,10 @@ import argparse
 
 # Capture images from pi
 def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, device_id, live, cfg):
+
+    from picamerax.array import PiRGBArray
+    from picamerax import PiCamera
+
     # Intialization
     first = True
     slow_CPU = False
@@ -76,11 +80,13 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, 
 
                     # Display Frame
                     if live is True:
+
                         cv2.imshow("Capture", z)    
                         cv2.waitKey(1)
                     
                     # Store results
                     if first:
+
                         z1[:, :, i] = z
                         t1[i] = t
                     else:
@@ -91,6 +97,7 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, 
                 rawCapture.truncate(0)
                 # count up to nz frames, then break out of the for loop.
                 i += 1
+
                 if i >= nz:                    
                     logger.info("Analog  gain: %s" % camera.analog_gain)
                     logger.info("Digital gain: %s" % camera.digital_gain)
@@ -767,6 +774,7 @@ if __name__ == '__main__':
         pcapture = multiprocessing.Process(target=capture_pi,
                                            args=(image_queue, z1, t1, z2, t2,
                                                  nx, ny, nz, tend.unix, tpause.unix, tunpause.unix, device_id, live, cfg))
+
     elif camera_type == "CV2":
         pcapture = multiprocessing.Process(target=capture_cv2,
                                            args=(image_queue, z1, t1, z2, t2,
