@@ -252,7 +252,7 @@ if __name__ == "__main__":
         # Sleep
         try:
             print("File queue empty, waiting for new files...\r", end = '')
-            time.sleep(10)
+            time.sleep(1)
             print("Processing...                              \r", end = '')
         except KeyboardInterrupt:
             fstat.close()
