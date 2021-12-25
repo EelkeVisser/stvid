@@ -366,5 +366,6 @@ if __name__ == "__main__":
                 sys.exit()
             print("File queue empty, waiting for new files...\r", end = "")
             time.sleep(args.wait)
+            print("Processing...                              \r", end = '')
         except KeyboardInterrupt:
             sys.exit()
