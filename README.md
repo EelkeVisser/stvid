@@ -343,15 +343,25 @@ wget ftp://ftp.astro.caltech.edu/pub/pgplot/pgplot5.2.tar.gz
 gunzip -c pgplot5.2.tar.gz | tar xvof -
 ```
 
+<<<<<<< HEAD
 Make the target directory, go there to generate the makefile:
 
 ```
 mkdir /usr/local/pgplot
 cd /usr/local/pgplot
+=======
+Make the target directory and generate the makefile:
+
+```
+cd ..
+mkdir pgplot
+cd pgplot
+>>>>>>> Readme for process.py
 ```
 
 Copy the drivers list file:
 
+<<<<<<< HEAD
 `sudo cp /usr/local/src/pgplot/drivers.list .`
 
 And edit it to enable /XWINDOW and /PNG, by removing the ! Or use mine:
@@ -400,6 +410,16 @@ sudo wget https://raw.githubusercontent.com/EelkeVisser/stvid/master/readme/make
 ```
 
 Remove -u at:
+=======
+`cp /usr/local/src/pgplot/drivers.list .`
+
+And edit it to enable /XWINDOW and /PNG, by removing the !
+Generate the makefile.
+
+`sudo /usr/local/src/pgplot/makemake /usr/local/pgplot linux f77_gcc`
+
+Now this makefile needs some editing. Remove -u at:
+>>>>>>> Readme for process.py
 
 `FFLAGC=`
 
@@ -419,6 +439,7 @@ Setup static linking of libpng14:
 Now compile pgplot:
 
 ```
+<<<<<<< HEAD
 sudo make
 sudo make clean
 sudo make cpg
@@ -469,6 +490,16 @@ total 4472
 
 ```
 Setup the environment variables:
+=======
+make
+make clean
+make cpg
+ld -shared -o libcpgplot.so --whole-archive libcpgplot.a
+ld -shared -o libpgplot.so --whole-archive libpgplot.a
+```
+
+If all goes well, this leaves the compiled lib togheter with some demo programs in /usr/local/src/pgplot Setup the environment variables:
+>>>>>>> Readme for process.py
 
 ```
 PGPLOT_DIR="/usr/local/pgplot/"; export PGPLOT_DIR
@@ -481,6 +512,7 @@ Run the demo programs to see if pgplot is working:
 ./pgdemo1
 ./cpgdemo
 ```
+
 Should show:
 ![pgdemo1](./readme/pgdemo1.png)
 
@@ -518,7 +550,6 @@ For processing run:
 cd /obs/20211225_0/203637
 ~/stvid/process.py -c ~/stvid/configuration.ini
 ```
-
 
 ## Todo
 
