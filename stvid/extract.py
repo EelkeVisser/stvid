@@ -194,6 +194,7 @@ def format_iod_line(norad, cospar, site_id, t, ra, de, nused, nstars):
 
 def store_results(ident, fname, path, iod_line):
     # Find destination
+    uniddest = False
     if ident.catalog.find("classfd.tle") > 0:
         outfname = os.path.join(path, "classfd/classfd.dat")
         dest = os.path.join(path, "classfd")
@@ -210,24 +211,29 @@ def store_results(ident, fname, path, iod_line):
         dest = os.path.join(path, "unid")
         outfname = os.path.join(path, "unid/unid.dat")
         color = "magenta"
+        uniddest = True
 
     # Copy files
     #pngfile = "%05d_%s" % (ident.norad, fname.replace(".fits", ".png"))
     pngfile = fname.replace(".fits", "_%05d.png" % ident.norad)
-    try:
-        shutil.copy2(fname, dest)
-        shutil.copy2(fname + ".cat", dest)
-        shutil.copy2(fname + ".cal", dest)
-        shutil.copy2(fname + ".id", dest)
-        shutil.copy2(fname + ".png", dest)
-    except PermissionError:
-        shutil.copyfile(fname, os.path.join(dest,fname))
-        shutil.copyfile(fname + ".cat", os.path.join(dest, fname + ".cat"))
-        shutil.copyfile(fname + ".cal", os.path.join(dest, fname + ".cal"))
-        shutil.copyfile(fname + ".id", os.path.join(dest, fname + ".id"))
-        shutil.copyfile(fname + ".png", os.path.join(dest, fname + ".png"))
-    if os.path.exists(pngfile):
-        shutil.move(pngfile, os.path.join(dest, pngfile))
+    if uniddest == False:
+        try:
+            shutil.copy2(fname, dest)
+            shutil.copy2(fname + ".cat", dest)
+            shutil.copy2(fname + ".cal", dest)
+            shutil.copy2(fname + ".id", dest)
+            shutil.copy2(fname + ".png", dest)
+        except PermissionError:
+            shutil.copyfile(fname, os.path.join(dest,fname))
+            shutil.copyfile(fname + ".cat", os.path.join(dest, fname + ".cat"))
+            shutil.copyfile(fname + ".cal", os.path.join(dest, fname + ".cal"))
+            shutil.copyfile(fname + ".id", os.path.join(dest, fname + ".id"))
+            shutil.copyfile(fname + ".png", os.path.join(dest, fname + ".png"))
+        if os.path.exists(pngfile):
+            shutil.move(pngfile, os.path.join(dest, pngfile))
+    else:
+        if os.path.exists(pngfile):
+            os.remove(pngfile)
 
     # Return IOD line for screen and file output
     return (outfname, iod_line, color)
