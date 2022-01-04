@@ -100,6 +100,7 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, 
                 buf = 1
             else:
                 buf = 2
+
             if float(time.time()) < tpause or float(time.time()) > tunpause:
                 image_queue.put(buf)
                 logger.debug("Captured buffer %d" % buf)
@@ -374,7 +375,7 @@ def capture_asi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, device_id, live, 
         camera.close()
 
 
-def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, path, device_id, cfg):
+def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tpause, tunpause, tend, path, device_id, cfg):
     """ compress: Aggregate nframes of observations into a single FITS file, with statistics.
 
         ImageHDU[0]: mean pixel value nframes         (zmax)
@@ -547,11 +548,12 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, path, device_id, cfg
             for i in range(10):
                 hdr["DUMY%03d" % i] = 0.0
 
-            # Write fits file
-            hdu = fits.PrimaryHDU(data=np.array([zavg, zstd, zmax, znum]),
-                                header=hdr)
-            hdu.writeto(os.path.join(filepath, ftemp))
-            os.rename(os.path.join(filepath, ftemp), os.path.join(filepath, fname))
+            if float(time.time()) < tpause or float(time.time()) > tunpause:
+                # Write fits file
+                hdu = fits.PrimaryHDU(data=np.array([zavg, zstd, zmax, znum]),
+                                    header=hdr)
+                hdu.writeto(os.path.join(filepath, ftemp))
+                os.rename(os.path.join(filepath, ftemp), os.path.join(filepath, fname))
 
             logger.info("Compressed %s in %.2f sec" % (fname, time.time() - tstart))
 
@@ -756,7 +758,7 @@ if __name__ == '__main__':
     # Set processes
     pcompress = multiprocessing.Process(target=compress,
                                         args=(image_queue, z1, t1, z2, t2, nx, ny,
-                                              nz, tend.unix, path, device_id, cfg))
+                                              nz, tpause.unix, tunpause.unix, tend.unix, path, device_id, cfg))
     if camera_type == "PI":
         pcapture = multiprocessing.Process(target=capture_pi,
                                            args=(image_queue, z1, t1, z2, t2,
