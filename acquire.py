@@ -16,10 +16,7 @@ import configparser
 import argparse
 
 # Capture images from pi
-def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, device_id, live, cfg):
-    from picamerax.array import PiRGBArray
-    from picamerax import PiCamera
-
+def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, device_id, live, cfg):
     # Intialization
     first = True
     slow_CPU = False
@@ -124,8 +121,9 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, device_id, live, c
                 buf = 1
             else:
                 buf = 2
-            image_queue.put(buf)
-            logger.debug("Captured buffer %d" % buf)
+            if float(time.time()) < tpause or float(time.time()) > tunpause:
+                image_queue.put(buf)
+                logger.debug("Captured buffer %d" % buf)
 
             # Swap flag
             first = not first
@@ -659,23 +657,57 @@ if __name__ == '__main__':
 
         # FIXME: The following will fail without internet access
         #        due to failure to download finals2000A.all
+        state, tpause, tunpause = get_sunset_and_sunrise(tnow, loc, -40*u.deg, -40*u.deg)
+
+        
+        # Start/end logic
+        if state == "sun never rises":
+            logger.info("The sun never rises above unpause level.")
+            tpause = tnow+24*u.h
+            tunpause = tnow+24*u.h
+        elif state == "sun never sets":
+            logger.info("The sun never sets below pause level.")
+            tpause = tnow+24*u.h
+            tunpause = tnow+24*u.h
+        elif (tunpause < tpause):
+            logger.info("The sun is currently below pause level.")
+            tpause = tnow-24*u.h
+        elif (tunpause >= tpause):
+            logger.info("The sun is currently above pause level.")
+        
         # Get sunrise and sunset times
         state, tset, trise = get_sunset_and_sunrise(tnow, loc, refalt_set, refalt_rise)
 
         # Start/end logic
         if state == "sun never rises":
             logger.info("The sun never rises. Exiting program.")
+            logger.info("Sunset at %s." % tset.isot)
+            logger.info("Pause  at %s." % tpause.isot)
+            logger.info("Resume at %s." % tunpause.isot)            
+            logger.info("Finish at %s." % trise.isot)
             sys.exit()
         elif state == "sun never sets":
             logger.info("The sun never sets.")
             tend = tnow + 24 * u.h
+            logger.info("Sunset at %s." % tset.isot)
+            logger.info("Pause  at %s." % tpause.isot)
+            logger.info("Resume at %s." % tunpause.isot)            
+            logger.info("Finish at %s." % trise.isot)
         elif (trise < tset):
             logger.info("The sun is below the horizon.")
             tend = trise
+            logger.info("Sunset at %s." % tset.isot)
+            logger.info("Pause  at %s." % tpause.isot)
+            logger.info("Resume at %s." % tunpause.isot)            
+            logger.info("Finish at %s." % trise.isot)
         elif (trise >= tset):
             dt = np.floor((tset - tnow).to(u.s).value)
             logger.info("The sun is above the horizon. Sunset at %s."
                         % tset.isot)
+            logger.info("Sunset at %s." % tset.isot)
+            logger.info("Pause  at %s." % tpause.isot)
+            logger.info("Resume at %s." % tunpause.isot)
+            logger.info("Finish at %s." % trise.isot)
             logger.info("Waiting %.0f seconds." % dt)
             tend = trise
             try:
@@ -685,6 +717,8 @@ if __name__ == '__main__':
             
     else:
         tend = tnow + test_duration * u.s
+        tpause = tnow+24*u.h
+        tunpause = tnow+24*u.h
 
     logger.info("Stopping allsky")
     subprocess.run(["/bin/sh", "-c", "sudo service allsky stop"])
@@ -717,7 +751,7 @@ if __name__ == '__main__':
     if camera_type == "PI":
         pcapture = multiprocessing.Process(target=capture_pi,
                                            args=(image_queue, z1, t1, z2, t2,
-                                                 nx, ny, nz, tend.unix, device_id, live, cfg))
+                                                 nx, ny, nz, tend.unix, tpause.unix, tunpause.unix, device_id, live, cfg))
     elif camera_type == "CV2":
         pcapture = multiprocessing.Process(target=capture_cv2,
                                            args=(image_queue, z1, t1, z2, t2,
