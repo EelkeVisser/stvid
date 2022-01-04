@@ -166,14 +166,29 @@ def format_position(ra, de):
 
 
 # Format IOD line
-def format_iod_line(norad, cospar, site_id, t, ra, de):
+def format_iod_line(norad, cospar, site_id, t, ra, de, nused, nstars):
     pstr = format_position(ra, de)
     tstr = t.replace("-", "") \
             .replace("T", "") \
             .replace(":", "") \
             .replace(".", "")
+            
+    nused = (nused * nused) / nstars
+    sky = 'G'
+    if(nused > 120):
+        sky = 'E'
+    elif(nused > 100):
+        sky = 'G'
+    elif(nused > 80):
+        sky = 'F'
+    elif(nused > 40):
+        sky = 'P'
+    elif(nused > 20):
+        sky = 'B'
+    else:
+        sky = 'T'
 
-    return "%05d %-9s %04d G %s 17 25 %s 37 S" % (norad, cospar, site_id, tstr,
+    return "%05d %-9s %04d %s %s 17 25 %s 37 S" % (norad, cospar, site_id, sky, tstr,
                                                   pstr)
 
 
@@ -190,7 +205,7 @@ def store_results(ident, fname, path, iod_line):
     elif ident.catalog.find("catalog.tle") > 0:
         outfname = os.path.join(path, "catalog/catalog.dat")
         dest = os.path.join(path, "catalog")
-        color = "grey"
+        color = "white"
     else:
         dest = os.path.join(path, "unid")
         outfname = os.path.join(path, "unid/unid.dat")
@@ -282,7 +297,7 @@ def angular_velocity(ident, w, texp):
 
 
 # Extract tracks
-def extract_tracks(fname, trkrmin, drdtmin, drdtmax, trksig, ntrkmin, path, results_path, tle_dir):
+def extract_tracks(fname, trkrmin, drdtmin, drdtmax, trksig, ntrkmin, path, results_path, tle_dir, nused, nstars):
     screenoutput_idents = []
 
     # Read four frame
@@ -366,7 +381,7 @@ def extract_tracks(fname, trkrmin, drdtmin, drdtmax, trksig, ntrkmin, path, resu
             cospar = get_cospar(ident.norad, ff.nfd, tle_dir)
             obs = Observation(ff, mjd, x0, y0)
             iod_line = "%s" % format_iod_line(ident.norad, cospar, ff.site_id,
-                                              obs.nfd, obs.ra, obs.de)
+                                              obs.nfd, obs.ra, obs.de, nused, nstars)
 
             # Create diagnostic plot
             #pngfile = "%05d_%s" % (ident.norad, fname.replace(".fits", ".png"))
@@ -384,13 +399,13 @@ def extract_tracks(fname, trkrmin, drdtmin, drdtmax, trksig, ntrkmin, path, resu
             elif ident.catalog.find("inttles.tle") > 0:
                 ppg.pgsci(3)
 
-            #ppg.pgpt(np.array([x0]), np.array([y0]), 4)
-            #ppg.pgmove(xmin, ymin)
-            #ppg.pgdraw(xmax, ymax)
-            #ppg.pgsch(0.65)
-            #ppg.pgtext(np.array([x0]), np.array([y0]), " %05d" % ident.norad)
-            plot_selection_new(ident)
-            #ppg.pgsch(1.0)
+            ppg.pgpt(np.array([x0]), np.array([y0]), 4)
+            ppg.pgmove(xmin, ymin)
+            ppg.pgdraw(xmax, ymax)
+            ppg.pgsch(0.65)
+            ppg.pgtext(np.array([x0]), np.array([y0]), " %05d" % ident.norad)
+            plot_selection_new(ident, 1, trkrmin)
+            ppg.pgsch(1.0)
             ppg.pgsci(1)
 
             ppg.pgend()
@@ -453,7 +468,7 @@ def extract_tracks(fname, trkrmin, drdtmin, drdtmax, trksig, ntrkmin, path, resu
             cospar = get_cospar(ident.norad, ff.nfd, tle_dir)
             obs = Observation(ff, mjd, x0, y0)
             iod_line = "%s" % format_iod_line(ident.norad, cospar, ff.site_id,
-                                              obs.nfd, obs.ra, obs.de)
+                                              obs.nfd, obs.ra, obs.de, nused, nstars)
 
             # Create diagnostic plot
             #pngfile = "%05d_%s" % (ident.norad, fname.replace(".fits", ".png"))
