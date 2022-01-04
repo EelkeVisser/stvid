@@ -43,6 +43,14 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, device_id, live, c
     # allow the camera to warmup
     time.sleep(0.1)
 
+    # setup path for allsky.
+    pth = time.strftime("/home/pi/allsky/images/%Y%m%d/", time.gmtime())
+    if not os.path.exists(pth):
+        os.makedirs(pth)
+    
+    # font for time string in image.    
+    font = cv2.FONT_HERSHEY_SIMPLEX
+
     try:
         # Loop until reaching end time
         while float(time.time()) < tend:
@@ -76,9 +84,20 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, device_id, live, c
                         frame, cv2.COLOR_BGR2GRAY)).astype(np.uint8)
                     # optionally rotate the frame by 2 * 90 degrees.    
                     # z = np.rot90(z, 2)
-                
+
+                    if i == 0:
+                        p = z.astype(int)
+                    else:
+                        p = np.maximum( p.astype(int) ,z.astype(int))
+
+                    if i == nz - 1:
+                        p = np.clip(p, 0, 255)
+                        p = cv2.putText(p,time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime()),(5,15), font, 0.3,(128,128,128),1,cv2.LINE_AA)                                                
+                        if live is True:
+                            cv2.imshow("Capture avg", p.astype(np.uint8))
+
                     # Display Frame
-                    if live is True:                            
+                    if live is True:
                         cv2.imshow("Capture", z)    
                         cv2.waitKey(1)
                     
@@ -95,6 +114,10 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, device_id, live, c
                 # count up to nz frames, then break out of the for loop.
                 i += 1
                 if i >= nz:
+                    cv2.imwrite('/var/www/html/image.jpg', p.astype(np.uint8))
+                    filepth = pth + time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime())
+                    print(filepth)
+                    cv2.imwrite(filepth, p.astype(np.uint8))
                     break
                 
             if first: 
@@ -434,7 +457,7 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, path, device_id, cfg
                     line = fp.readline()
                 with open(os.path.join(filepath, "position.txt"), "w") as fp:
                     fp.write(line)
-
+                
             # Wait for completed capture buffer to become available
             while (image_queue.qsize == 0):
                 time.sleep(0.1)
@@ -659,8 +682,13 @@ if __name__ == '__main__':
                 time.sleep(dt)
             except KeyboardInterrupt:
                 sys.exit()
+            
     else:
         tend = tnow + test_duration * u.s
+
+    logger.info("Stopping allsky")
+    subprocess.run(["/bin/sh", "-c", "sudo service allsky stop"])
+    time.sleep(0.1)
 
     logger.info("Starting data acquisition")
     logger.info("Acquisition will end after "+tend.isot)
@@ -718,3 +746,8 @@ if __name__ == '__main__':
     # Release device
     if live is True:
         cv2.destroyAllWindows()
+
+    time.sleep(0.1)
+    logger.info("Starting allsky")
+    subprocess.run(["/bin/sh", "-c", "sudo service allsky restart"])
+    
