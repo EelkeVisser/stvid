@@ -40,14 +40,6 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, 
     # allow the camera to warmup
     time.sleep(0.1)
 
-    # setup path for allsky.
-    pth = time.strftime("/home/pi/allsky/images/%Y%m%d/", time.gmtime())
-    if not os.path.exists(pth):
-        os.makedirs(pth)
-    
-    # font for time string in image.    
-    font = cv2.FONT_HERSHEY_SIMPLEX
-
     try:
         # Loop until reaching end time
         while float(time.time()) < tend:
@@ -80,18 +72,7 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, 
                     z = np.asarray(cv2.cvtColor(
                         frame, cv2.COLOR_BGR2GRAY)).astype(np.uint8)
                     # optionally rotate the frame by 2 * 90 degrees.    
-                    # z = np.rot90(z, 2)
-
-                    if i == 0:
-                        p = z.astype(int)
-                    else:
-                        p = np.maximum( p.astype(int) ,z.astype(int))
-
-                    if i == nz - 1:
-                        p = np.clip(p, 0, 255)
-                        p = cv2.putText(p,time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime()),(5,15), font, 0.3,(128,128,128),1,cv2.LINE_AA)                                                
-                        if live is True:
-                            cv2.imshow("Capture avg", p.astype(np.uint8))
+                    z = np.rot90(z, 2)
 
                     # Display Frame
                     if live is True:
@@ -110,11 +91,9 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, 
                 rawCapture.truncate(0)
                 # count up to nz frames, then break out of the for loop.
                 i += 1
-                if i >= nz:
-                    cv2.imwrite('/var/www/html/image.jpg', p.astype(np.uint8))
-                    filepth = pth + time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime())
-                    print(filepth)
-                    cv2.imwrite(filepth, p.astype(np.uint8))
+                if i >= nz:                    
+                    logger.info("Analog  gain: %s" % camera.analog_gain)
+                    logger.info("Digital gain: %s" % camera.digital_gain)
                     break
                 
             if first: 
@@ -405,6 +384,14 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, path, device_id, cfg
 
     Also updates a [observations_path]/control/state.txt for interfacing with satttools/runsched and sattools/slewto
     """
+    # setup path for allsky.
+    pth = time.strftime("/home/pi/allsky/images/%Y%m%d/", time.gmtime())
+    if not os.path.exists(pth):
+        os.makedirs(pth)
+    
+    # font for time string in image.    
+    font = cv2.FONT_HERSHEY_SIMPLEX
+
     # Force a restart
     controlpath = os.path.join(path, "control")
     if not os.path.exists(controlpath):
@@ -456,6 +443,18 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, path, device_id, cfg
                 with open(os.path.join(filepath, "position.txt"), "w") as fp:
                     fp.write(line)
                 
+                # Run the processing script!
+                # Run the processing script!
+                # Run the processing script!
+                #subprocess.Popen(['lxterminal', '--working-directory=/home/pi/', '-e', '/home/pi/stvid/process.py', '-c', '/home/pi/stvid/configuration.ini', '-d', filepath],
+                """
+                subprocess.Popen("lxterminal --working-directory=/home/pi/ -e /home/pi/stvid/process.py -c /home/pi/stvid/configuration.ini -d %s" % filepath,
+                     cwd="/home/pi/",
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.STDOUT,
+                     shell=True)
+                """
+
             # Wait for completed capture buffer to become available
             while (image_queue.qsize == 0):
                 time.sleep(0.1)
@@ -474,6 +473,16 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, path, device_id, cfg
             elif proc_buffer == 2:
                 t = t2
                 z = z2
+
+            # Save images to Allsky dir.
+            a = np.max(z, axis=0)
+            a = np.clip(a, 0, 255)
+            a = cv2.putText(a,time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime()),(5,15), font, 0.3,(128,128,128),1,cv2.LINE_AA)                                                
+
+            cv2.imwrite('/var/www/html/image.jpg', a.astype(np.uint8))
+            filepth = pth + time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime())
+            logger.info("Saving to %s" % filepth)
+            cv2.imwrite(filepth, a.astype(np.uint8))
 
             # Format time
             nfd = "%s.%03d" % (time.strftime("%Y-%m-%dT%T",
