@@ -399,6 +399,7 @@ sudo mv makefile makefile.backup
 sudo wget https://raw.githubusercontent.com/EelkeVisser/stvid/master/readme/makefile
 ```
 
+
 Remove -u at:
 
 `FFLAGC=`
@@ -419,7 +420,6 @@ Setup static linking of libpng14:
 Now compile pgplot:
 
 ```
-
 sudo make
 sudo make clean
 sudo make cpg
@@ -470,8 +470,7 @@ total 4472
 
 ```
 
-If all goes well, this leaves the compiled lib togheter with some demo programs in /usr/local/pgplot Setup the environment variables:
-
+Setup the environment variables:
 
 ```
 PGPLOT_DIR="/usr/local/pgplot/"; export PGPLOT_DIR
@@ -483,6 +482,15 @@ Run the demo programs to see if pgplot is working:
 ```
 ./pgdemo1
 ./cpgdemo
+```
+Should show:
+![pgdemo1](./readme/pgdemo1.png)
+
+Now you have a working pgplot in the folder /usr/local/pgplot but if you want to compile sattools, it can not find it. I solved this the ugly way by copying this whole dir to the include and library dir:
+```
+sudo cp * /usr/include -r
+sudo cp * /usr/lib -r
+
 ```
 
 Should show:
