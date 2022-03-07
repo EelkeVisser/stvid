@@ -491,6 +491,10 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tpause, tunpause, tend, pa
             t0 = Time(nfd, format="isot")
             dt = t - t[0]
 
+            # Dump numpy arrays to analyse.
+            #np.save(f"/dev/shm/{nfd}_z.npy", z)
+            #np.save(f"/dev/shm/{nfd}_t.npy", t)
+
             # Cast to 32 bit float
             z = z.astype("float32")
             

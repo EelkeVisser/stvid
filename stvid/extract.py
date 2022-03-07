@@ -211,7 +211,7 @@ def store_results(ident, fname, path, iod_line):
         dest = os.path.join(path, "unid")
         outfname = os.path.join(path, "unid/unid.dat")
         color = "magenta"
-        uniddest = True
+        uniddest = False
 
     # Copy files
     #pngfile = "%05d_%s" % (ident.norad, fname.replace(".fits", ".png"))
