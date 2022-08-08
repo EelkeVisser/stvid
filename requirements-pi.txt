@@ -10,3 +10,4 @@ pytz==2018.4
 six
 spacetrack==0.13.0
 termcolor
+ffmpeg
