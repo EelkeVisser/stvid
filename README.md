@@ -330,7 +330,7 @@ Next is pgplot based on [https://sites.astro.caltech.edu/~tjp/pgplot/install-uni
 It needs a fortran compiler:
 
 ```
-sudo apt-get install gfortran
+sudo apt-get install gfortran f2c
 ```
 
 Download the source from [ftp://ftp.astro.caltech.edu/pub/pgplot/pgplot5.2.tar.gz](ftp://ftp.astro.caltech.edu/pub/pgplot/pgplot5.2.tar.gz) as follows:
