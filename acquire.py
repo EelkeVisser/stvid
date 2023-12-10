@@ -4,6 +4,7 @@ import os
 import numpy as np
 import cv2
 import time
+from datetime import datetime, timedelta
 import ctypes
 import multiprocessing
 from astropy.coordinates import EarthLocation
@@ -14,6 +15,8 @@ from stvid.utils import get_sunset_and_sunrise
 import logging
 import configparser
 import argparse
+import subprocess
+import shutil
 
 # Capture images from pi
 def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, device_id, live, cfg):
@@ -76,8 +79,8 @@ def capture_pi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, tpause, tunpause, 
                     z = np.asarray(cv2.cvtColor(
                         frame, cv2.COLOR_BGR2GRAY)).astype(np.uint8)
                     # optionally rotate the frame by 2 * 90 degrees.    
-                    z = np.rot90(z, 2)
-
+                    # z = np.rot90(z, 2)
+                
                     # Display Frame
                     if live is True:
 
@@ -335,14 +338,16 @@ def capture_asi(image_queue, z1, t1, z2, t2, nx, ny, nz, tend, device_id, live, 
 
                 # Get frame
                 z = camera.capture_video_frame()
+                
+                # Compute mid time
+                t = (float(time.time()) + t0) / 2
 
                 # Apply software binning
                 if software_bin > 1:
                     my, mx = z.shape
                     z = cv2.resize(z, (mx // software_bin, my // software_bin))
-                
-                # Compute mid time
-                t = (float(time.time()) + t0) / 2
+
+                z = np.rot90(z, 2)
 
                 # Display Frame
                 if live is True:
@@ -455,13 +460,16 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tpause, tunpause, tend, pa
                 # Run the processing script!
                 # Run the processing script!
                 #subprocess.Popen(['lxterminal', '--working-directory=/home/pi/', '-e', '/home/pi/stvid/process.py', '-c', '/home/pi/stvid/configuration.ini', '-d', filepath],
-                """
-                subprocess.Popen("lxterminal --working-directory=/home/pi/ -e /home/pi/stvid/process.py -c /home/pi/stvid/configuration.ini -d %s" % filepath,
-                     cwd="/home/pi/",
+                
+                #subprocess.Popen("lxterminal --title=Process.py --working-directory=/home/pi/ -e /home/pi/stvid/process.py -c /home/pi/stvid/configuration.ini -d %s" % filepath,
+                subprocess.Popen("lxterminal --title=Process.py --geometry=120x40 --working-directory=%s --command=\"bash /home/pi/stvid/proasi.sh\"" % filepath,
+                     cwd=filepath,
                      stdout=subprocess.PIPE,
                      stderr=subprocess.STDOUT,
                      shell=True)
-                """
+
+
+
 
             # Wait for completed capture buffer to become available
             while (image_queue.qsize == 0):
@@ -483,14 +491,15 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tpause, tunpause, tend, pa
                 z = z2
 
             # Save images to Allsky dir.
-            a = np.max(z, axis=0)
+            a = np.max(z, axis=2)
             a = np.clip(a, 0, 255)
-            a = cv2.putText(a,time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime()),(5,15), font, 0.3,(128,128,128),1,cv2.LINE_AA)                                                
+            a = cv2.putText(a,time.strftime("image-%Y-%m-%dT%H:%M:%S.jpg", time.gmtime()),(5,15), font, 0.3,(128,128,128),1,cv2.LINE_AA)                                                
+            if camera_type == "ASI":
+                cv2.imwrite('/var/www/html/image.jpg', a.astype(np.uint8))
+                filepth = pth + time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime())
+                logger.info("Saving to %s" % filepth)
+                cv2.imwrite(filepth, a.astype(np.uint8))
 
-            cv2.imwrite('/var/www/html/image.jpg', a.astype(np.uint8))
-            filepth = pth + time.strftime("image-%Y%m%d%H%M%S.jpg", time.gmtime())
-            logger.info("Saving to %s" % filepth)
-            cv2.imwrite(filepth, a.astype(np.uint8))
 
             # Format time
             nfd = "%s.%03d" % (time.strftime("%Y-%m-%dT%T",
@@ -741,6 +750,22 @@ if __name__ == '__main__':
         tend = tnow + test_duration * u.s
         tpause = tnow+24*u.h
         tunpause = tnow+24*u.h
+
+    # Cleanup output directory
+    rmdate = datetime.now() - timedelta(days = 2 )
+    obsid = "%s_%d" % (rmdate.strftime("%Y%m%d"), device_id)
+    filepath = os.path.join(path, obsid)
+    logger.info("removing folder %s" % filepath)    
+    # removing directory
+    shutil.rmtree(filepath, ignore_errors = True)
+
+    rmdate = datetime.now() - timedelta(days = 2 )
+    obsid = "%s_%d" % (rmdate.strftime("%Y%m%d"), device_id)
+    filepathresult = os.path.join(path, "results", obsid)
+    logger.info("removing folder %s" % filepathresult)    
+    # removing directory
+    shutil.rmtree(filepathresult, ignore_errors = True)
+
 
     logger.info("Stopping allsky")
     subprocess.run(["/bin/sh", "-c", "sudo service allsky stop"])
