@@ -462,7 +462,7 @@ def compress(image_queue, z1, t1, z2, t2, nx, ny, nz, tpause, tunpause, tend, pa
                 #subprocess.Popen(['lxterminal', '--working-directory=/home/pi/', '-e', '/home/pi/stvid/process.py', '-c', '/home/pi/stvid/configuration.ini', '-d', filepath],
                 
                 #subprocess.Popen("lxterminal --title=Process.py --working-directory=/home/pi/ -e /home/pi/stvid/process.py -c /home/pi/stvid/configuration.ini -d %s" % filepath,
-                subprocess.Popen("lxterminal --title=Process.py --geometry=120x40 --working-directory=%s --command=\"bash /home/pi/stvid/proasi.sh\"" % filepath,
+                subprocess.Popen("lxterminal --title=Process.py --geometry=120x40 --working-directory=%s --command=\"bash /home/pi/stvid/scripts/proasi.sh\"" % filepath,
                      cwd=filepath,
                      stdout=subprocess.PIPE,
                      stderr=subprocess.STDOUT,
