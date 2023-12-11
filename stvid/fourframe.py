@@ -91,11 +91,19 @@ class Prediction:
             self.prx = self.rx
             self.pry = self.ry
         elif len(self.t) == 2:
-            self.prx = np.polyfit(self.t, self.rx, 1)
-            self.pry = np.polyfit(self.t, self.ry, 1)
+            try:
+                self.prx = np.polyfit(self.t, self.rx, 1)
+                self.pry = np.polyfit(self.t, self.ry, 1)
+            except:
+                self.prx = self.rx
+                self.pry = self.ry
         else:
-            self.prx = np.polyfit(self.t, self.rx, 2)
-            self.pry = np.polyfit(self.t, self.ry, 2)
+            try:
+                self.prx = np.polyfit(self.t, self.rx, 2)
+                self.pry = np.polyfit(self.t, self.ry, 2)
+            except:
+                self.prx = self.rx
+                self.pry = self.ry
 
     def position_and_velocity(self, t):
         # Derivatives
@@ -810,6 +818,7 @@ class FourFrame:
                 f" {satno:05d}",
                 color=color_detected,
                 ha="center",
+                size=18,
                 in_layout=False,
             )
 
@@ -890,7 +899,7 @@ class FourFrame:
 
         if self.in_frame(xs[0], ys[0]):
             ax.text(
-                xs[0], ys[0], f" {p.satno:05d} ", color=color, ha=ha, in_layout=False
+                xs[0], ys[0], f" {p.satno:05d} ", color=color, ha=ha, size=18, in_layout=False
             )
 
         for state, linestyle in zip(
