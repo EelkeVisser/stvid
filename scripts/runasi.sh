@@ -6,7 +6,7 @@ do
 echo "Run acquire"
 cd
 cd stvid
-./acquire.py -c /home/pi/stvid/configuration.ini
+./acquire.py -c /home/eelke/stvid/configuration.ini
 retVal=$?
 echo $retVal
 if [ $retVal -ne 0 ]; then
