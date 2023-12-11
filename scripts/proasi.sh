@@ -11,7 +11,8 @@ export ST_COSPAR=0794
 export ST_LOGIN="identity=eelkevisser@hotmail.com&password=4Y8sQRfjN4GFBq4"
 export ST_OBSDIR=/home/eelke/obs
 
-tleupdate
+#tleupdate
+update_tle.py -c /home/eelke/stvid/configuration.ini
 
 process.py -c /home/eelke/stvid/configuration.ini &
 PID=$!
