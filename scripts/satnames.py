@@ -22,7 +22,7 @@ def main():
                 #    print(words[0] + ' ' )
                 #    print(tleline)
                    
-                result = subprocess.run(["/home/pi/sattools/tleinfo", "-n", "-i", words[0]], capture_output=True, text=True, universal_newlines=True)
+                result = subprocess.run(["/home/eelke/sattools/bin/tleinfo", "-n", "-i", words[0]], capture_output=True, text=True, universal_newlines=True)
                 #print(result)
                 print(words[0] + ' ' + result.stdout.strip('\n'))
                 
