@@ -490,17 +490,6 @@ Now you have a working pgplot in the folder /usr/local/pgplot but if you want to
 ```
 sudo cp * /usr/include -r
 sudo cp * /usr/lib -r
-
-```
-
-Should show:
-![pgdemo1](./readme/pgdemo1.png)
-
-Now you have a working pgplot in the folder /usr/local/pgplot but if you want to compile sattools, it can not find it. I solved this the ugly way by copying this whole dir to the include and library dir:
-```
-sudo cp * /usr/include -r
-sudo cp * /usr/lib -r
-
 ```
 
 ### Sattools
