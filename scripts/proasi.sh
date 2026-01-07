@@ -8,7 +8,7 @@ PATH="/home/eelke/hough3d-code:$PATH"
 export ST_DATADIR=/home/eelke/sattools
 export ST_TLEDIR=/home/eelke/tle
 export ST_COSPAR=0794
-export ST_LOGIN="identity=eelkevisser@hotmail.com&password=4Y8sQRfjN4GFBq4"
+export ST_LOGIN="identity=xx&password=xx"
 export ST_OBSDIR=/home/eelke/obs
 
 #tleupdate
